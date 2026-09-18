@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff7fa">
+  <meta name="description" content="Ảnh, nhạc và những điều nhỏ xinh dành cho TinyPhone.">
+  <title>TinyPhone ♡</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-rose" aria-hidden="true"></div>
+  <div class="ambient ambient-lavender" aria-hidden="true"></div>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="TinyPhone">
+        <span class="brand-heart" aria-hidden="true">♡</span>
+        <span><strong>TinyPhone</strong><small>Một góc nhỏ của cậu</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Nội dung TinyPhone">
+        <button class="tab-button is-active" type="button" role="tab" aria-selected="true" aria-controls="photos-page" id="photos-tab" data-tab="photos-page">Ảnh</button>
+        <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="music-page" id="music-tab" data-tab="music-page">Nhạc</button>
+      </nav>
+      <div class="connection-control" data-state="disconnected">
+        <span class="serial-state" id="serial-state"><i aria-hidden="true"></i> Chưa kết nối</span>
+        <button class="connect-button" id="serial-connect" type="button">Kết nối TinyPhone</button>
+        <button class="quiet-button" id="serial-disconnect" type="button" disabled>Ngắt kết nối</button>
+      </div>
+    </header>
+
+    <aside class="support-note" id="serial-support-note">Lần đầu tiên, hãy chọn <strong>USB Serial Device</strong>. Những lần sau TinyPhone sẽ tự kết nối lại.</aside>
+    <aside class="phone-help" id="phone-help" hidden><strong>Đang dùng điện thoại?</strong><span>Kết nối Wi‑Fi của TinyPhone rồi mở <a href="http://192.168.4.1">trang chuyển dữ liệu Wi‑Fi</a>.</span></aside>
+
+    <main>
+      <section class="page-panel" id="photos-page" role="tabpanel" aria-labelledby="photos-tab">
+        <div class="page-heading">
+          <div><p class="eyebrow">ẢNH CỦA CẬU</p><h1>Chọn một vị trí để thay ảnh.</h1><p>Tên ảnh chỉ để cậu dễ nhớ. TinyPhone sẽ tự lo phần còn lại.</p></div>
+          <div class="count-pill"><strong id="photo-count">0</strong><span>/ 17 vị trí</span></div>
+        </div>
+        <div class="photo-gallery" id="photo-gallery" aria-live="polite"></div>
+
+        <section class="photo-editor" id="photo-editor" hidden aria-labelledby="photo-editor-title">
+          <div class="editor-heading"><div><button class="back-button" id="close-photo-editor" type="button">← Quay lại</button><p class="eyebrow">THAY ẢNH</p><h2 id="photo-editor-title">Màn hình khóa</h2></div><span class="editor-slot" id="photo-slot-label">Vị trí ảnh</span></div>
+          <div class="image-workspace">
+            <div class="preview-column">
+              <label class="drop-zone" id="image-drop-zone" for="image-input"><input id="image-input" type="file" accept="image/png,image/jpeg,image/webp"><span class="drop-icon" aria-hidden="true">＋</span><span><strong>Chọn ảnh mới</strong><small>JPG, PNG hoặc WebP</small></span></label>
+              <div class="screen-preview"><canvas id="crop-canvas" width="640" height="480" aria-label="Xem trước ảnh TinyPhone"></canvas><div class="preview-placeholder" id="preview-placeholder"><span aria-hidden="true">♡</span><strong>Ảnh xem trước sẽ ở đây</strong><small>Sau khi chọn, cậu có thể kéo ảnh để đổi vị trí.</small></div></div>
+              <p class="interaction-hint">Kéo ảnh để điều chỉnh vị trí.</p>
+            </div>
+            <div class="editor-controls">
+              <div class="field-group"><label for="zoom-range">Thu phóng</label><div class="range-row"><input id="zoom-range" type="range" min="1" max="3" value="1" step="0.01"><output id="zoom-output" for="zoom-range">100%</output></div></div>
+              <div class="field-group"><label for="fit-mode">Hiển thị ảnh</label><select id="fit-mode"><option value="cover">Lấp đầy màn hình</option><option value="contain">Hiển thị toàn bộ ảnh</option></select><p class="field-help" id="fit-help">Ảnh sẽ lấp đầy màn hình; một phần nhỏ ở cạnh có thể được cắt.</p></div>
+              <div class="field-group border-color-field" id="border-color-field" hidden><label for="border-color">Màu viền</label><div class="color-row"><input id="border-color" type="color" value="#fff7fa"><span id="border-color-value">#FFF7FA</span></div></div>
+              <div class="field-group"><label for="photo-display-name">Tên ảnh</label><input id="photo-display-name" type="text" maxlength="60" placeholder="Một cái tên dễ nhớ"></div>
+              <button class="secondary-button" id="reset-position" type="button">Đặt lại vị trí</button>
+              <button class="primary-button wide" id="save-photo" type="button" disabled>Lưu vào TinyPhone</button>
+              <div class="friendly-status" id="photo-status" data-state="idle" hidden><strong id="photo-status-title"></strong><span id="photo-status-detail"></span><progress id="photo-progress" value="0" max="1"></progress><details><summary>Chi tiết kỹ thuật</summary><code id="photo-error-detail"></code></details></div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-panel" id="music-page" role="tabpanel" aria-labelledby="music-tab" hidden>
+        <div class="page-heading">
+          <div><p class="eyebrow">NHẠC CỦA CẬU</p><h1>Những bài hát đang ở bên TinyPhone.</h1><p>Thêm bài mới, kiểm tra tên rồi để website chuẩn bị tất cả.</p></div>
+          <div class="count-pill"><strong id="music-installed-count">0</strong><span>/ 100 bài hát</span></div>
+        </div>
+        <section class="music-library" aria-labelledby="installed-music-title"><div class="section-heading-row"><div><h2 id="installed-music-title">Đã có trên TinyPhone</h2><p id="installed-music-summary">Kết nối TinyPhone để xem danh sách.</p></div></div><div class="installed-music-list" id="installed-music-list"></div><p class="installed-music-status" id="installed-music-status" role="status" hidden></p></section>
+        <section class="add-music-card" aria-labelledby="new-music-title">
+          <div class="section-heading-row"><div><p class="eyebrow">THÊM NHẠC</p><h2 id="new-music-title">Chọn những bài cậu muốn thêm</h2></div><label class="add-button" for="audio-input">＋ Thêm nhạc<input id="audio-input" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple></label></div>
+          <label class="drop-zone music-drop" id="audio-drop-zone" for="audio-input"><span class="drop-icon" aria-hidden="true">♫</span><span><strong>Thả nhạc vào đây</strong><small>Tối đa 16 bài trong mỗi lần thêm</small></span></label>
+          <div class="music-empty-state" id="music-empty-state"><span aria-hidden="true">♪</span><strong>Chưa chọn bài hát mới</strong><p>Tên bài hát và ca sĩ sẽ được đoán tự động.</p></div>
+          <div class="music-toolbar"><div><strong id="track-count">0 bài hát mới</strong><span id="conversion-size">Sẵn sàng khi cậu chọn nhạc</span></div><button class="text-button danger" id="clear-tracks" type="button" disabled>Xóa danh sách này</button></div>
+          <div class="track-list" id="track-list" aria-live="polite"></div>
+          <div class="music-save-area" id="music-save-area" hidden><button class="primary-button wide" id="save-music" type="button" disabled>Thêm vào TinyPhone</button><div class="friendly-status" id="music-status" data-state="idle" hidden><strong id="music-status-title"></strong><span id="music-status-detail"></span><progress id="music-progress" value="0" max="1"></progress><details><summary>Chi tiết kỹ thuật</summary><code id="music-error-detail"></code></details></div></div>
+        </section>
+      </section>
+
+      <aside class="device-summary" aria-labelledby="device-summary-title">
+        <div class="summary-heading"><div><p class="eyebrow">TINYPHONE CỦA CẬU</p><h2 id="device-summary-title">Mọi thứ ở cùng một nơi</h2></div><span id="device-summary-state">Chưa kết nối</span></div>
+        <div class="summary-grid"><div><span>Màn hình khóa</span><strong id="summary-lock">—</strong></div><div><span>Ảnh</span><strong id="summary-photos">—</strong><progress id="summary-photo-progress" value="0" max="16"></progress></div><div><span>Nhạc</span><strong id="summary-music">—</strong><progress id="summary-music-progress" value="0" max="100"></progress></div></div>
+        <p class="summary-good" id="summary-good">Kết nối TinyPhone để bắt đầu ♡</p>
+      </aside>
+
+      <details class="settings-tools">
+        <summary><span><strong>Cài đặt</strong><small>Trợ giúp và công cụ bảo trì</small></span><span aria-hidden="true">⌄</span></summary>
+        <div class="settings-content">
+          <details class="advanced-tools">
+            <summary><span><strong>Công cụ nâng cao</strong><small>Dành cho chuẩn bị tệp và bảo trì</small></span><span aria-hidden="true">⌄</span></summary>
+            <div class="advanced-content">
+          <section><h3>Ảnh</h3><p>Tải tệp đã chuẩn bị hoặc ảnh xem trước về máy tính.</p><div class="field-group"><label for="wallpaper-slot">Tên tệp cố định</label><select id="wallpaper-slot"><option value="lock.bin">lock.bin</option><option value="01_nuibaden.bin">01_nuibaden.bin</option><option value="02_dianvoit.bin">02_dianvoit.bin</option><option value="03_nhintudinhnui.bin">03_nhintudinhnui.bin</option><option value="04_tuyensiudepgai.bin">04_tuyensiudepgai.bin</option><option value="05_tuyendepppgaiii.bin">05_tuyendepppgaiii.bin</option><option value="06_tuyenncuteee.bin">06_tuyenncuteee.bin</option><option value="07_tuyennghiemmtucc.bin">07_tuyennghiemmtucc.bin</option><option value="08_tuyenvoikesach.bin">08_tuyenvoikesach.bin</option><option value="09_wallpaper.bin">09_wallpaper.bin</option><option value="10_wallpaper.bin">10_wallpaper.bin</option><option value="11_wallpaper.bin">11_wallpaper.bin</option><option value="12_wallpaper.bin">12_wallpaper.bin</option><option value="13_wallpaper.bin">13_wallpaper.bin</option><option value="14_wallpaper.bin">14_wallpaper.bin</option><option value="15_wallpaper.bin">15_wallpaper.bin</option><option value="16_wallpaper.bin">16_wallpaper.bin</option></select></div><div class="advanced-actions"><button id="download-bin" type="button" disabled>Tải file .bin</button><button id="download-preview" type="button" disabled>Tải ảnh xem trước</button></div></section>
+          <section><h3>Nhạc</h3><p>Chuyển đổi, tạo gói hoặc lưu thư mục nhạc thủ công.</p><div class="advanced-track-list" id="advanced-track-list"></div><button id="auto-filenames" type="button" disabled>Tạo lại tên tệp an toàn</button><div class="progress-area" id="music-output" hidden><div><strong id="progress-title">Sẵn sàng chuyển đổi</strong><span id="progress-detail"></span></div><progress id="conversion-progress" value="0" max="1"></progress></div><div class="advanced-actions"><button id="convert-all" type="button" disabled>Chuyển đổi WAV</button><button id="download-package" type="button" disabled>Tạo TinyPhone-media.tar</button><button id="download-playlist" type="button" disabled>Tải playlist.csv</button><button id="save-folder" type="button" hidden disabled>Lưu thư mục nhạc</button></div><p class="field-help" id="save-note">Các công cụ này dùng chung bộ chuyển đổi với giao diện chính.</p></section>
+          <section class="raw-inventory"><div class="section-heading-row"><div><h3>Nội dung thẻ SD</h3><p id="sd-browser-summary">Kết nối TinyPhone để đọc danh sách.</p></div><button id="sd-refresh" type="button" disabled>Làm mới</button></div><div class="sd-layout" id="sd-layout" hidden><div><strong>/images/wallpapers</strong><div id="sd-wallpaper-list"></div></div><div><strong>/music</strong><div id="sd-music-list"></div></div></div></section>
+          <section><h3>Kết nối TinyPhone</h3><p>Website dùng cổng USB gốc của TinyPhone. Nếu không phản hồi, nhấn RESET một lần rồi thử lại.</p><code>Espressif USB 303A:1001 · Web Serial · 115200 danh nghĩa</code></section>
+            </div>
+          </details>
+        </div>
+      </details>
+    </main>
+    <footer><span>♡ TinyPhone</span><span>Ảnh, nhạc và một vài điều nhỏ xinh.</span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

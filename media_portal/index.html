@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TinyPhone SD Transfer</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">TinyPhone</p>
+        <h1 data-i18n="sdTransfer">SD Transfer</h1>
+      </div>
+      <span id="connection" class="pill" data-i18n="connecting">Connecting…</span>
+    </header>
+
+    <section class="card status-grid" aria-labelledby="status-title">
+      <h2 id="status-title" data-i18n="status">Status</h2>
+      <dl>
+        <div><dt data-i18n="firmware">Firmware</dt><dd id="firmware">—</dd></div>
+        <div><dt data-i18n="sdCard">SD card</dt><dd id="sd-state">—</dd></div>
+        <div><dt data-i18n="freeSpace">Free space</dt><dd id="free-space">—</dd></div>
+        <div><dt data-i18n="transfer">Transfer</dt><dd id="transfer-state">—</dd></div>
+      </dl>
+      <p id="notice" class="notice" data-i18n="preparedNotice">Use prepared TinyPhone files. Browser conversion is planned for a later phase.</p>
+    </section>
+
+    <section class="card" aria-labelledby="package-title">
+      <h2 id="package-title" data-i18n="mediaPackage">Media package</h2>
+      <p data-i18n-html="packageHelp">Upload one <code>TinyPhone-media.tar</code> from Media Studio. Its WAV files and metadata are validated together and appended to the installed playlist.</p>
+      <div class="form-row">
+        <label class="file-label"><span data-i18n="tinyPhonePackage">TinyPhone package</span><input id="package-file" type="file" accept=".tar,application/x-tar"></label>
+        <button id="package-upload" type="button" data-i18n="uploadPackage">Upload package</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="wallpaper-title">
+      <h2 id="wallpaper-title" data-i18n="wallpapers">Wallpapers</h2>
+      <p data-i18n-html="wallpaperHelp">Upload an exact 320 × 240 LVGL RGB565 <code>.bin</code> file (153,612 bytes).</p>
+      <div class="form-row">
+        <label><span data-i18n="slot">Slot</span><select id="wallpaper-slot"></select></label>
+        <label class="file-label"><span data-i18n="preparedFile">Prepared file</span><input id="wallpaper-file" type="file" accept=".bin,application/octet-stream"></label>
+        <button id="wallpaper-upload" type="button" data-i18n="replaceSlot">Replace slot</button>
+      </div>
+      <ul id="wallpaper-list" class="media-list"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="music-title">
+      <h2 id="music-title" data-i18n="music">Music</h2>
+      <p data-i18n="musicHelp">Upload PCM16, 22050 Hz mono or stereo WAV. Safe names use lowercase letters, numbers, and underscores.</p>
+      <div class="form-row">
+        <label class="file-label"><span data-i18n="preparedWav">Prepared WAV</span><input id="music-file" type="file" accept=".wav,audio/wav"></label>
+        <label><span data-i18n="sdFilename">SD filename</span><input id="music-name" type="text" inputmode="text" placeholder="my_track.wav" maxlength="80"></label>
+        <label class="check"><input id="music-replace" type="checkbox"> <span data-i18n="replaceExisting">Replace existing</span></label>
+        <button id="music-upload" type="button" data-i18n="uploadTrack">Upload track</button>
+      </div>
+      <ul id="music-list" class="media-list"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="playlist-title">
+      <h2 id="playlist-title" data-i18n="playlistMetadata">Playlist metadata</h2>
+      <p data-i18n-html="playlistHelp">Upload a UTF-8 CSV with <code>file,title,artist</code> columns.</p>
+      <div class="form-row">
+        <label class="file-label">playlist.csv<input id="playlist-file" type="file" accept=".csv,text/csv"></label>
+        <button id="playlist-upload" type="button" data-i18n="replacePlaylist">Replace playlist</button>
+      </div>
+    </section>
+
+    <section class="card apply-card" aria-labelledby="apply-title">
+      <div>
+        <h2 id="apply-title" data-i18n="finish">Finish</h2>
+        <p id="changes" data-i18n="noChanges">No changes in this session.</p>
+      </div>
+      <div class="actions">
+        <button id="exit" class="secondary" type="button" data-i18n="exitNoRestart">Exit without restart</button>
+        <button id="apply" type="button" data-i18n="applyRestart">Apply &amp; Restart</button>
+      </div>
+    </section>
+
+    <section id="progress-card" class="card progress-card" hidden>
+      <div><strong id="progress-name" data-i18n="uploading">Uploading…</strong><span id="progress-value">0%</span></div>
+      <progress id="progress" max="100" value="0"></progress>
+      <p id="progress-bytes">0 B / 0 B</p>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>
