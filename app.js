@@ -993,6 +993,10 @@ function photoDisplayName(slot) {
   return readPhotoLabels()[slot] || defaultPhotoLabel(slot);
 }
 
+function photoSlotIsPresent(slot) {
+  return Boolean(sdInventory.wallpapers.find((item) => item.slot === slot)?.present);
+}
+
 function savePhotoDisplayName(slot, name) {
   const labels = readPhotoLabels();
   const clean = String(name || "").replace(/[\r\n]+/g, " ").trim().slice(0, 60);
@@ -1110,6 +1114,7 @@ function selectPhotoSlot(slot) {
   $("#photo-editor-title").textContent = photoDisplayName(slot);
   $("#photo-slot-label").textContent = slot === 0 ? "Màn hình khóa" : `Vị trí ảnh ${slot}`;
   $("#photo-status").hidden = true;
+  $("#delete-photo").hidden = !photoSlotIsPresent(slot);
   $("#photo-editor").hidden = false;
   resetImagePosition();
   updateTransferButtons();
@@ -1475,6 +1480,17 @@ class TinyPhoneSerialSession {
     await this.waitForToken((token) => token === "DONE", 30000);
   }
 
+  async deleteWallpaper(slot) {
+    if (!this.ready || !this.writer) throw new Error("Hãy kết nối TinyPhone trước.");
+    if (!Number.isInteger(slot) || slot < 0 || slot > 16) {
+      throw new Error("Vị trí ảnh không hợp lệ.");
+    }
+    this.tokens.length = 0;
+    await this.writeLine(`UWDELETE ${slot}`);
+    await this.waitForToken((token) => token === "PROCESSING", 12000);
+    await this.waitForToken((token) => token === "DONE", 30000);
+  }
+
   async disconnect() {
     if (this.closing) return;
     this.closing = true;
@@ -1594,6 +1610,7 @@ async function reconnectAuthorizedTinyPhone() {
 function updateTransferButtons() {
   const ready = Boolean(serialSession?.ready) && !transferBusy;
   $("#save-photo").disabled = !ready || !selectedPhotoFile;
+  $("#delete-photo").disabled = !ready || !photoSlotIsPresent(selectedPhotoSlot);
   $("#save-music").disabled = !ready || tracks.length === 0 || conversionRunning;
   $("#serial-connect").disabled = serialConnectBusy || Boolean(serialSession?.ready) || transferBusy;
   for (const button of $$(".remove-installed-button")) button.disabled = !ready;
@@ -1618,6 +1635,36 @@ $("#serial-disconnect").addEventListener("click", async () => {
   await serialSession?.disconnect();
   serialSession = null;
   updateTransferButtons();
+});
+
+$("#delete-photo").addEventListener("click", async () => {
+  if (!serialSession?.ready || transferBusy || !photoSlotIsPresent(selectedPhotoSlot)) return;
+  const slot = selectedPhotoSlot;
+  const title = photoDisplayName(slot);
+  if (!window.confirm(`Xóa “${title}” khỏi TinyPhone?`)) return;
+
+  transferBusy = true;
+  updateTransferButtons();
+  setFriendlyStatus("photo", "working", "Đang xóa ảnh...", "TinyPhone đang cập nhật thẻ SD.", null, null);
+  try {
+    await serialSession.deleteWallpaper(slot);
+    const item = sdInventory.wallpapers.find((entry) => entry.slot === slot);
+    if (item) {
+      item.present = false;
+      item.size = 0;
+    }
+    await refreshSdInventory(false);
+    renderPhotoGallery();
+    $("#delete-photo").hidden = true;
+    setFriendlyStatus("photo", "success", "✓ Đã xóa ảnh", "Vị trí này đã sẵn sàng cho ảnh mới.", null, 1);
+    showToast(`Đã xóa “${title}” khỏi TinyPhone.`);
+  } catch (error) {
+    setFriendlyStatus("photo", "error", "Chưa thể xóa ảnh", "Kiểm tra kết nối TinyPhone rồi thử lại.", error, 0);
+    showToast("Chưa thể xóa ảnh.", true);
+  } finally {
+    transferBusy = false;
+    updateTransferButtons();
+  }
 });
 
 setSerialState("disconnected", "Chưa kết nối");
@@ -1654,6 +1701,8 @@ window.addEventListener("pagehide", () => {
 
 $("#save-photo").addEventListener("click", async () => {
   if (!selectedPhotoFile || !serialSession?.ready || transferBusy) return;
+  if (photoSlotIsPresent(selectedPhotoSlot) &&
+      !window.confirm("Vị trí này đã có ảnh. Cậu có muốn thay bằng ảnh mới không?")) return;
   transferBusy = true;
   updateTransferButtons();
   const slot = selectedPhotoSlot;
